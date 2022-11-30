@@ -78,7 +78,7 @@ func (scala *Scala) Loads() []rule.LoadInfo {
 
 var scalaLoads = []rule.LoadInfo{
 	{
-		Name: "@rules_scala//python:defs.bzl",
+		Name: "@rules_scala//scala:scala.bzl",
 		Symbols: []string{
 			scalaBinaryKind,
 			scalaLibraryKind,
