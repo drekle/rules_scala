@@ -3,6 +3,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 load("//scala:scala.bzl", "scala_library", "scala_binary")
 load("@io_bazel_rules_scala//scala:providers.bzl", "declare_deps_provider")
 
+load("//gazelle/toolchain:toolchain.bzl", "export_scalagazelle_deps", "scalagazelle_toolchain")
+
 go_library(
     name = "gazelle",
     srcs = [
@@ -40,35 +42,13 @@ gazelle_binary(
     visibility = ["//visibility:public"],
 )
 
-
-scala_library(
-    name = "scala-gazelle-lib",
-    srcs = glob(["*.scala"]),
-    main_class = "io.bazel.rules_scala.gazelle.Resolver",
-    plugins = [],
-    resources = glob(["src/main/resources/*"]),
-    # unused_dependency_checker_mode = "error",
-    visibility = [
-        "//visibility:public",
-    ],
-    runtime_deps = [
-        # "@clusterrisk_3rdparty//ch/qos/logback:logback_classic",
-    ],
-    deps = [
-        # "@org_scalameta_common",
-        # "@org_scalameta_parsers",
-        # "@org_scalameta_scalafmt_core",
-        # "@org_scalameta_scalameta",
-        # "@org_scalameta_trees",
-    ],
-)
-
 scala_binary(
     name = "parse",
+    srcs = ["Resolver.scala"],
     main_class = "io.bazel.rules_scala.gazelle.Resolver",
     visibility = ["//visibility:public"],
     deps = [
-        ":scala-gazelle-lib",
+        ":scalagazelle_classpath",
         # "//src/java/io/bazel/rulesscala/worker",
     ],
 )
@@ -78,11 +58,36 @@ declare_deps_provider(
     deps_id = "scalagazelle_classpath",
     visibility = ["//visibility:public"],
     deps = [
-        "@com_geirsson_metaconfig_core",
+        "@io_cats_core",
+        "@io_circe_core",
+        "@io_circe_generic",
+        "@io_circe_parser",
         "@org_scalameta_common",
         "@org_scalameta_parsers",
         "@org_scalameta_scalafmt_core",
         "@org_scalameta_scalameta",
         "@org_scalameta_trees",
     ],
+)
+
+scalagazelle_toolchain(
+    name = "scalagazelle_toolchain_impl",
+    dep_providers = [
+        ":scalagazelle_classpath_provider",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+
+toolchain(
+    name = "scalagazelle_toolchain",
+    toolchain = ":scalagazelle_toolchain_impl",
+    toolchain_type = "//gazelle/toolchain:scalagazelle_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+export_scalagazelle_deps(
+    name = "scalagazelle_classpath",
+    deps_id = "scalagazelle_classpath",
+    visibility = ["//visibility:public"],
 )

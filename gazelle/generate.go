@@ -3,12 +3,14 @@ package scala
 import (
 	"fmt"
 	"io/fs"
+	"log"
+	"os"
 	"path/filepath"
 
-	"github.com/bazelbuild/bazel-gazelle/config"
 	"github.com/bazelbuild/bazel-gazelle/language"
 	"github.com/bazelbuild/bazel-gazelle/rule"
 	"github.com/bazelbuild/rules_scala/gazelle/scalaconfig"
+	"github.com/emirpasic/gods/lists/singlylinkedlist"
 	"github.com/emirpasic/gods/sets/treeset"
 	godsutils "github.com/emirpasic/gods/utils"
 	"github.com/google/uuid"
@@ -22,11 +24,7 @@ func (scala *Scala) GenerateRules(args language.GenerateArgs) language.GenerateR
 	cfgs := args.Config.Exts[languageName].(scalaconfig.Configs)
 	cfg := cfgs[args.Rel]
 
-	var result language.GenerateResult
-	result.Gen = make([]*rule.Rule, 0)
-
 	scalaProjectRoot := cfg.ScalaProjectRoot()
-	visibility := fmt.Sprintf("//%s:__subpackages__", scalaProjectRoot)
 	packageName := filepath.Base(args.Dir)
 
 	scalaLibraryFilenames := treeset.NewWith(godsutils.StringComparator)
@@ -61,6 +59,15 @@ func (scala *Scala) GenerateRules(args language.GenerateArgs) language.GenerateR
 		}
 	}
 
+	parser := newScalaParser(args.Config.RepoRoot, args.Rel, cfg.IgnoresDependency)
+	_ = parser
+	visibility := fmt.Sprintf("//%s:__subpackages__", scalaProjectRoot)
+
+	var result language.GenerateResult
+	result.Gen = make([]*rule.Rule, 0)
+	collisionErrors := singlylinkedlist.New()
+	_ = collisionErrors
+
 	if !scalaLibraryFilenames.Empty() {
 
 		scalaLibraryTargetName := cfg.RenderLibraryName(packageName)
@@ -75,9 +82,18 @@ func (scala *Scala) GenerateRules(args language.GenerateArgs) language.GenerateR
 			generateImportsAttribute().
 			build()
 
-		result.Gen = append(result.Gen, scalaLibrary)
-		result.Imports = append(result.Imports, scalaLibrary.PrivateAttr(config.GazelleImportsKey))
+		_ = scalaLibrary
+		// result.Gen = append(result.Gen, scalaLibrary)
+		// result.Imports = append(result.Imports, scalaLibrary.PrivateAttr(config.GazelleImportsKey))
 
+	}
+
+	if !collisionErrors.Empty() {
+		it := collisionErrors.Iterator()
+		for it.Next() {
+			log.Printf("ERROR: %v\n", it.Value())
+		}
+		os.Exit(1)
 	}
 
 	return result

@@ -73,6 +73,10 @@ scalafmt_repositories()
 
 MAVEN_SERVER_URLS = default_maven_server_urls()
 
+load("//gazelle:scalagazelle_repositories.bzl", "scalagazelle_default_config", "scalagazelle_repositories")
+
+scalagazelle_repositories()
+
 # needed for the cross repo proto test
 load("//test/proto_cross_repo_boundary:repo.bzl", "proto_cross_repo_boundary_repository")
 
