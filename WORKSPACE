@@ -2,23 +2,26 @@ workspace(name = "io_bazel_rules_scala")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-skylib_version = "1.0.3"
+# skylib_version = "1.0.3"
 
-http_archive(
-    name = "bazel_skylib",
-    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
-    type = "tar.gz",
-    url = "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/{}/bazel-skylib-{}.tar.gz".format(skylib_version, skylib_version),
-)
+# http_archive(
+#     name = "bazel_skylib",
+#     sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+#     type = "tar.gz",
+#     url = "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/{}/bazel-skylib-{}.tar.gz".format(skylib_version, skylib_version),
+# )
 
-_build_tools_release = "3.5.0"
 
-http_archive(
-    name = "com_github_bazelbuild_buildtools",
-    sha256 = "a02ba93b96a8151b5d8d3466580f6c1f7e77212c4eb181cba53eb2cae7752a23",
-    strip_prefix = "buildtools-%s" % _build_tools_release,
-    url = "https://github.com/bazelbuild/buildtools/archive/%s.tar.gz" % _build_tools_release,
-)
+load("//:repositories.bzl", "external_deps")
+external_deps()
+load("//:setup.bzl", "rules_scala_internal_setup")
+rules_scala_internal_setup()
+
+load("//gazelle:deps.bzl", "gazelle_deps")
+# gazelle:repository_macro gazelle/deps.bzl%gazelle_deps
+gazelle_deps()
+
+
 
 load("@io_bazel_rules_scala//:scala_config.bzl", "scala_config")
 
@@ -69,6 +72,10 @@ scalafmt_default_config()
 scalafmt_repositories()
 
 MAVEN_SERVER_URLS = default_maven_server_urls()
+
+load("//gazelle:scalagazelle_repositories.bzl", "scalagazelle_default_config", "scalagazelle_repositories")
+
+scalagazelle_repositories()
 
 # needed for the cross repo proto test
 load("//test/proto_cross_repo_boundary:repo.bzl", "proto_cross_repo_boundary_repository")
@@ -121,25 +128,6 @@ load("//private:format.bzl", "format_repositories")
 
 format_repositories()
 
-http_archive(
-    name = "io_bazel_rules_go",
-    sha256 = "d1ffd055969c8f8d431e2d439813e42326961d0942bdf734d2c95dc30c369566",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.5/rules_go-v0.24.5.tar.gz",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.24.5/rules_go-v0.24.5.tar.gz",
-    ],
-)
-
-load(
-    "@io_bazel_rules_go//go:deps.bzl",
-    "go_register_toolchains",
-    "go_rules_dependencies",
-)
-
-go_rules_dependencies()
-
-go_register_toolchains()
-
 # Explicitly pull in a different (newer) version of rules_java for remote jdks
 rules_java_extra_version = "5.1.0"
 
@@ -158,30 +146,6 @@ load("@rules_java//java:repositories.bzl", "remote_jdk8_repos")
 # We need to select based on platform when we use these
 # https://github.com/bazelbuild/bazel/issues/11655
 remote_jdk8_repos()
-
-bazel_toolchains_version = "4.1.0"
-
-http_archive(
-    name = "bazel_toolchains",
-    sha256 = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
-    strip_prefix = "bazel-toolchains-%s" % bazel_toolchains_version,
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/%s/bazel-toolchains-%s.tar.gz" % (bazel_toolchains_version, bazel_toolchains_version),
-        "https://github.com/bazelbuild/bazel-toolchains/releases/download/%s/bazel-toolchains-%s.tar.gz" % (bazel_toolchains_version, bazel_toolchains_version),
-    ],
-)
-
-load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
-bazel_skylib_workspace()
-
-load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
-
-# Creates toolchain configuration for remote execution with BuildKite CI
-# for rbe_ubuntu1604
-rbe_autoconfig(
-    name = "buildkite_config",
-)
 
 load("//third_party/repositories:repositories.bzl", "repositories")
 

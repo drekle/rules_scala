@@ -456,6 +456,23 @@ artifacts = {
         "artifact": "com.github.scopt:scopt_2.11:4.0.0-RC2",
         "sha256": "956dfc89d3208e4a6d8bbfe0205410c082cee90c4ce08be30f97c044dffc3435",
     },
+    # gazelle
+    "io_cats_core": {
+        "artifact": "org.typelevel:cats-core_2.11:2.7.0",
+        "sha256": "b5d60c8bc8f1333e2deac17d72d41bb59c53283a67ff3a613189746ce97ac8ad",
+    },
+    "io_circe_core": {
+        "artifact": "io.circe:circe-core_2.11:0.11.2",
+        "sha256": "b5d60c8bc8f1333e2deac17d72d41bb59c53283a67ff3a613189746ce97ac8ad",
+    },
+    "io_circe_generic": {
+        "artifact": "io.circe:circe-generic_2.11:0.11.2",
+        "sha256": "b5d60c8bc8f1333e2deac17d72d41bb59c53283a67ff3a613189746ce97ac8ad",
+    },
+    "io_circe_parser": {
+        "artifact": "io.circe:circe-parser_2.11:0.11.2",
+        "sha256": "b5d60c8bc8f1333e2deac17d72d41bb59c53283a67ff3a613189746ce97ac8ad",
+    },
 
     # test only
     "com_twitter__scalding_date": {

@@ -1,0 +1,93 @@
+load("@bazel_gazelle//:def.bzl", "gazelle_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//scala:scala.bzl", "scala_library", "scala_binary")
+load("@io_bazel_rules_scala//scala:providers.bzl", "declare_deps_provider")
+
+load("//gazelle/toolchain:toolchain.bzl", "export_scalagazelle_deps", "scalagazelle_toolchain")
+
+go_library(
+    name = "gazelle",
+    srcs = [
+        "configure.go",
+        "fix.go",
+        "generate.go",
+        "kinds.go",
+        "language.go",
+        "parser.go",
+        "resolve.go",
+        "target.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_scala/gazelle",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gazelle/scalaconfig:scalaconfig",
+        "@bazel_gazelle//config:go_default_library",
+        "@bazel_gazelle//label:go_default_library",
+        "@bazel_gazelle//language:go_default_library",
+        "@bazel_gazelle//repo:go_default_library",
+        "@bazel_gazelle//resolve:go_default_library",
+        "@bazel_gazelle//rule:go_default_library",
+        "@com_github_emirpasic_gods//lists/singlylinkedlist",
+        "@com_github_emirpasic_gods//sets/treeset",
+        "@com_github_emirpasic_gods//utils",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
+        "@io_bazel_rules_go//go/tools/bazel:go_default_library",
+    ],
+)
+
+gazelle_binary(
+    name = "gazelle_scala_binary",
+    languages = ["//gazelle"],
+    visibility = ["//visibility:public"],
+)
+
+scala_binary(
+    name = "parse",
+    srcs = ["Resolver.scala"],
+    main_class = "io.bazel.rules_scala.gazelle.Resolver",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":scalagazelle_classpath",
+        # "//src/java/io/bazel/rulesscala/worker",
+    ],
+)
+
+declare_deps_provider(
+    name = "scalagazelle_classpath_provider",
+    deps_id = "scalagazelle_classpath",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@io_cats_core",
+        "@io_circe_core",
+        "@io_circe_generic",
+        "@io_circe_parser",
+        "@org_scalameta_common",
+        "@org_scalameta_parsers",
+        "@org_scalameta_scalafmt_core",
+        "@org_scalameta_scalameta",
+        "@org_scalameta_trees",
+    ],
+)
+
+scalagazelle_toolchain(
+    name = "scalagazelle_toolchain_impl",
+    dep_providers = [
+        ":scalagazelle_classpath_provider",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+
+toolchain(
+    name = "scalagazelle_toolchain",
+    toolchain = ":scalagazelle_toolchain_impl",
+    toolchain_type = "//gazelle/toolchain:scalagazelle_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+export_scalagazelle_deps(
+    name = "scalagazelle_classpath",
+    deps_id = "scalagazelle_classpath",
+    visibility = ["//visibility:public"],
+)
